@@ -40,12 +40,12 @@ function getBubbleBounds(width = 58, height = 58) {
   const viewportHeight = Math.max(window.innerHeight || 0, 480);
   const isMobile = viewportWidth <= 760;
   const margin = isMobile ? 12 : 22;
-  const bottomReserve = isMobile ? 86 : 22;
+  const bottomReserve = isMobile ? 104 : 22;
   const minX = margin;
   const maxX = Math.max(minX, viewportWidth - width - margin);
   const minY = margin;
   const maxY = Math.max(minY, viewportHeight - height - bottomReserve);
-  return { defaultY: maxY, leftX: minX, maxX, maxY, minX, minY, rightX: maxX, viewportWidth };
+  return { defaultY: maxY, leftX: minX, maxX, maxY, minX, minY, rightX: maxX, viewportHeight, viewportWidth };
 }
 
 function clamp(value, min, max) {
@@ -138,7 +138,10 @@ export function mountPalengkeMarites({
   const dismiss = bubble.querySelector(".anonymous-contact__bubble-close");
   const stored = JSON.parse(window.localStorage.getItem("palengke_support_bubble_position") || "null");
   let side = stored?.side === "right" ? "right" : "left";
-  let y = typeof stored?.y === "number" ? stored.y : getBubbleBounds().defaultY;
+  const initialBounds = getBubbleBounds();
+  const initialStoredY = typeof stored?.y === "number" ? stored.y : initialBounds.defaultY;
+  const initialStoredTooHigh = initialStoredY < initialBounds.viewportHeight * (initialBounds.viewportWidth <= 760 ? 0.72 : 0.58);
+  let y = initialStoredTooHigh ? initialBounds.defaultY : initialStoredY;
   let dragging = null;
   let ignoreClick = false;
   let idleTimer = null;
