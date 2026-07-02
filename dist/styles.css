@@ -45,6 +45,27 @@
   pointer-events: auto;
 }
 
+.anonymous-contact [hidden],
+.anonymous-contact__panel[hidden],
+.anonymous-contact [data-marites-panel][hidden] {
+  display: none !important;
+}
+
+.anonymous-contact button,
+.anonymous-contact input,
+.anonymous-contact select,
+.anonymous-contact textarea {
+  font: inherit;
+}
+
+.anonymous-contact button {
+  letter-spacing: normal;
+  line-height: normal;
+  min-height: 0;
+  text-transform: none;
+  white-space: normal;
+}
+
 .anonymous-contact__bubble-shell {
   display: inline-flex;
   position: relative;

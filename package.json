@@ -1,6 +1,6 @@
 {
   "name": "@palengke/marites",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Shared Palengke Marites bubble for React, static pages, and backend proxy helpers",
   "type": "module",
   "main": "./dist/index.js",

@@ -101,3 +101,6 @@ Production hash:
 ```txt
 c464160a0e4d13615dd354c83cea97207ea186e6948dfb96e5c3413ec0c6110f
 ```
+
+
+Vanilla Marites is scoped against host-page global button/input CSS and explicitly hides closed panels, so static pages match the React component behavior.
