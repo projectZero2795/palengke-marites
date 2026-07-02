@@ -1,0 +1,36 @@
+{
+  "name": "@palengke/marites",
+  "version": "0.1.0",
+  "description": "Shared Palengke Marites bubble for React, static pages, and backend proxy helpers",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./backend": {
+      "types": "./dist/backend.d.ts",
+      "import": "./dist/backend.js"
+    },
+    "./vanilla": {
+      "types": "./dist/vanilla.d.ts",
+      "import": "./dist/vanilla.js"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./support-agent.png": "./assets/support-agent.png"
+  },
+  "files": [
+    "assets",
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": [
+    "./dist/styles.css"
+  ],
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "license": "MIT"
+}
