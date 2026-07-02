@@ -9,6 +9,35 @@ const topics = [
   ["feedback", "Feedback"],
 ];
 
+
+const blockingOverlaySelector = [
+  '[role="dialog"]',
+  '.modal-backdrop',
+  '.post-modal-backdrop',
+  '.filter-wizard-backdrop',
+  '.guide-modal-backdrop',
+  '.guide-help-backdrop',
+  '.warning-modal-backdrop',
+  '.visitor-tutorial-overlay',
+  '.feedback-backdrop',
+  '.feedback-popup',
+  '.apply-modal-backdrop',
+  '.cv-choice-backdrop',
+  '.map-modal-backdrop',
+].join(',');
+
+function isVisibleElement(element) {
+  if (!(element instanceof HTMLElement)) return false;
+  const style = window.getComputedStyle(element);
+  if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') return false;
+  const rect = element.getBoundingClientRect();
+  return rect.width > 8 && rect.height > 8;
+}
+
+function hasBlockingOverlay(contactRoot) {
+  return Array.from(document.querySelectorAll(blockingOverlaySelector)).some((element) => !contactRoot?.contains(element) && isVisibleElement(element));
+}
+
 const categories = [
   ["job_offer", "Job offer"],
   ["room_rent", "Room rent"],
@@ -140,7 +169,7 @@ export function mountPalengkeMarites({
   let side = stored?.side === "right" ? "right" : "left";
   const initialBounds = getBubbleBounds();
   const initialStoredY = typeof stored?.y === "number" ? stored.y : initialBounds.defaultY;
-  const initialStoredTooHigh = initialStoredY < initialBounds.viewportHeight * (initialBounds.viewportWidth <= 760 ? 0.72 : 0.58);
+  const initialStoredTooHigh = initialStoredY < initialBounds.viewportHeight * (initialBounds.viewportWidth <= 760 ? 0.82 : 0.58);
   let y = initialStoredTooHigh ? initialBounds.defaultY : initialStoredY;
   let dragging = null;
   let ignoreClick = false;
@@ -180,9 +209,22 @@ export function mountPalengkeMarites({
     node.textContent = text;
   }
 
+  function updateOverlayState() {
+    const blocked = hasBlockingOverlay(bubble);
+    bubble.classList.toggle('anonymous-contact--blocked', blocked);
+    bubble.setAttribute('aria-hidden', blocked ? 'true' : 'false');
+  }
+
   applyPosition(side, y);
   resetIdleTimer();
-  window.addEventListener("resize", () => applyPosition(side, y));
+  updateOverlayState();
+  const overlayObserver = new MutationObserver(updateOverlayState);
+  overlayObserver.observe(document.body, { attributes: true, childList: true, subtree: true });
+  window.setInterval(updateOverlayState, 1000);
+  window.addEventListener("resize", () => {
+    applyPosition(side, y);
+    updateOverlayState();
+  });
   bubble.addEventListener("focusin", resetIdleTimer);
   bubble.addEventListener("pointerdown", resetIdleTimer);
   bubble.addEventListener("pointerenter", resetIdleTimer);

@@ -396,3 +396,43 @@
     width: 18px;
   }
 }
+
+
+.anonymous-contact--blocked {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translate3d(var(--support-bubble-x, 22px), calc(var(--support-bubble-y, calc(100vh - 80px)) + 8px), 0) scale(0.94) !important;
+}
+
+
+/* Visual cleanup: keep the avatar helpful without competing with cards, forms, or modal actions. */
+@media (max-width: 760px) {
+  .anonymous-contact {
+    filter: drop-shadow(0 10px 20px rgba(2, 6, 23, 0.3));
+  }
+
+  .anonymous-contact__bubble,
+  .anonymous-contact__bubble img {
+    height: 44px !important;
+    width: 44px !important;
+  }
+
+  .anonymous-contact__bubble img {
+    border-width: 1.5px !important;
+  }
+
+  .anonymous-contact__bubble-close {
+    background: rgba(37, 99, 235, 0.92) !important;
+    border-width: 1px !important;
+    box-shadow: 0 8px 18px rgba(2, 6, 23, 0.24) !important;
+    height: 16px !important;
+    right: -3px !important;
+    top: -3px !important;
+    width: 16px !important;
+  }
+
+  .anonymous-contact__bubble-close svg {
+    height: 9px !important;
+    width: 9px !important;
+  }
+}

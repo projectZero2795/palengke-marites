@@ -28,6 +28,36 @@ export const defaultMaritesWantedCategories = [
 const bubblePositionStorageKey = "palengke_support_bubble_position";
 const dragThreshold = 6;
 const defaultBubbleSize = { width: 58, height: 58 };
+
+const blockingOverlaySelector = [
+  '[role="dialog"]',
+  '.modal-backdrop',
+  '.post-modal-backdrop',
+  '.filter-wizard-backdrop',
+  '.guide-modal-backdrop',
+  '.guide-help-backdrop',
+  '.warning-modal-backdrop',
+  '.visitor-tutorial-overlay',
+  '.feedback-backdrop',
+  '.feedback-popup',
+  '.apply-modal-backdrop',
+  '.cv-choice-backdrop',
+  '.map-modal-backdrop',
+].join(',');
+
+function isVisibleElement(element) {
+  if (!(element instanceof HTMLElement)) return false;
+  const style = window.getComputedStyle(element);
+  if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') return false;
+  const rect = element.getBoundingClientRect();
+  return rect.width > 8 && rect.height > 8;
+}
+
+function hasBlockingOverlay(contactRoot) {
+  if (typeof document === 'undefined') return false;
+  return Array.from(document.querySelectorAll(blockingOverlaySelector)).some((element) => !contactRoot?.contains(element) && isVisibleElement(element));
+}
+
 const h = React.createElement;
 
 function classNames(...parts) {
@@ -176,6 +206,7 @@ export function PalengkeMaritesBubble({
   const [isOpen, setIsOpen] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [isBlockedByOverlay, setIsBlockedByOverlay] = useState(false);
   const [position, setPosition] = useState({ x: 22, y: 0, side: "left", ready: false });
   const [activeView, setActiveView] = useState(initialView === "wanted" ? "wanted" : "support");
   const [email, setEmail] = useState("");
@@ -201,7 +232,7 @@ export function PalengkeMaritesBubble({
     const stored = readStoredPosition();
     const isMobile = bounds.viewportWidth <= 760;
     const storedY = typeof stored?.y === "number" ? stored.y : bounds.defaultY;
-    const safeStoredY = storedY < bounds.viewportHeight * (isMobile ? 0.72 : 0.58) ? bounds.defaultY : storedY;
+    const safeStoredY = storedY < bounds.viewportHeight * (isMobile ? 0.82 : 0.58) ? bounds.defaultY : storedY;
     const side = stored?.side ?? "left";
     setPosition({
       x: side === "left" ? bounds.leftX : bounds.rightX,
@@ -229,6 +260,23 @@ export function PalengkeMaritesBubble({
     }
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    const contactRoot = bubbleRef.current?.closest('.anonymous-contact');
+    function updateOverlayState() {
+      setIsBlockedByOverlay(hasBlockingOverlay(contactRoot));
+    }
+    updateOverlayState();
+    const observer = new MutationObserver(updateOverlayState);
+    observer.observe(document.body, { attributes: true, childList: true, subtree: true });
+    window.addEventListener('resize', updateOverlayState);
+    const interval = window.setInterval(updateOverlayState, 1000);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', updateOverlayState);
+      window.clearInterval(interval);
+    };
   }, []);
 
   useEffect(() => {
@@ -432,7 +480,7 @@ export function PalengkeMaritesBubble({
     setIsDismissed(true);
   }
 
-  if (isDismissed) return null;
+  if (isDismissed || isBlockedByOverlay) return null;
 
   const contactClasses = classNames(
     "anonymous-contact",
