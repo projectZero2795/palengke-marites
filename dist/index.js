@@ -43,7 +43,7 @@ function getBubbleBounds(width = defaultBubbleSize.width, height = defaultBubble
   const viewportHeight = Math.max(window.innerHeight || 0, 480);
   const isMobile = viewportWidth <= 760;
   const margin = isMobile ? 12 : 22;
-  const bottomReserve = isMobile ? 86 : 22;
+  const bottomReserve = isMobile ? 104 : 22;
   const minX = margin;
   const maxX = Math.max(minX, viewportWidth - width - margin);
   const minY = margin;
@@ -198,10 +198,13 @@ export function PalengkeMaritesBubble({
     const rect = bubbleRef.current?.getBoundingClientRect();
     const bounds = getBubbleBounds(rect?.width, rect?.height);
     const stored = readStoredPosition();
+    const isMobile = bounds.viewportWidth <= 760;
+    const storedY = typeof stored?.y === "number" ? stored.y : bounds.defaultY;
+    const safeStoredY = isMobile && storedY < bounds.viewportHeight * 0.58 ? bounds.defaultY : storedY;
     const side = stored?.side ?? "left";
     setPosition({
       x: side === "left" ? bounds.leftX : bounds.rightX,
-      y: clamp(stored?.y ?? bounds.defaultY, bounds.minY, bounds.maxY),
+      y: clamp(safeStoredY, bounds.minY, bounds.maxY),
       side,
       ready: true,
     });

@@ -377,3 +377,22 @@
     width: 50px;
   }
 }
+
+/* Keep Marites as a quiet avatar and away from mobile bottom navigation. */
+@media (max-width: 760px) {
+  .anonymous-contact--clean-safe-area,
+  .anonymous-contact {
+    z-index: 58;
+  }
+
+  .anonymous-contact__bubble,
+  .anonymous-contact__bubble img {
+    height: 48px;
+    width: 48px;
+  }
+
+  .anonymous-contact__bubble-close {
+    height: 18px;
+    width: 18px;
+  }
+}
