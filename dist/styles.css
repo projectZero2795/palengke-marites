@@ -436,3 +436,11 @@
     width: 9px !important;
   }
 }
+
+
+/* UI cleanliness pass 2026-07-02: never cover dense mobile content. */
+.anonymous-contact--content-hidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translate3d(var(--support-bubble-x, 22px), calc(var(--support-bubble-y, calc(100vh - 80px)) + 8px), 0) scale(0.92) !important;
+}

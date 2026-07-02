@@ -58,6 +58,42 @@ function hasBlockingOverlay(contactRoot) {
   return Array.from(document.querySelectorAll(blockingOverlaySelector)).some((element) => !contactRoot?.contains(element) && isVisibleElement(element));
 }
 
+
+const denseContentSelector = [
+  'article',
+  '[class*="listing-card"]',
+  '[class*="product-card"]',
+  '[class*="room-card"]',
+  '[class*="home-card"]',
+  '[class*="job-card"]',
+  '[class*="guide-card"]',
+  '[class*="wanted-card"]',
+  '[class*="review-card"]',
+  '[class*="tool-ad-card"]',
+  '[data-marites-avoid-floating]',
+].join(',');
+
+function hasDenseContentUnderBubble(contactRoot) {
+  if (typeof document === 'undefined' || typeof window === 'undefined') return false;
+  if ((window.innerWidth || 0) > 760) return false;
+  const viewportWidth = Math.max(window.innerWidth || 0, 320);
+  const viewportHeight = Math.max(window.innerHeight || 0, 480);
+  const points = [
+    [64, viewportHeight - 160],
+    [Math.min(160, viewportWidth * 0.42), viewportHeight - 160],
+    [viewportWidth - 64, viewportHeight - 160],
+    [64, viewportHeight - 230],
+  ];
+  return points.some(([x, y]) =>
+    document.elementsFromPoint(x, y).some((element) => {
+      if (!(element instanceof Element)) return false;
+      if (contactRoot?.contains(element)) return false;
+      const match = element.closest(denseContentSelector);
+      return Boolean(match && !contactRoot?.contains(match));
+    }),
+  );
+}
+
 const h = React.createElement;
 
 function classNames(...parts) {
@@ -207,6 +243,7 @@ export function PalengkeMaritesBubble({
   const [isDismissed, setIsDismissed] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isBlockedByOverlay, setIsBlockedByOverlay] = useState(false);
+  const [isHiddenByDenseContent, setIsHiddenByDenseContent] = useState(false);
   const [position, setPosition] = useState({ x: 22, y: 0, side: "left", ready: false });
   const [activeView, setActiveView] = useState(initialView === "wanted" ? "wanted" : "support");
   const [email, setEmail] = useState("");
@@ -278,6 +315,26 @@ export function PalengkeMaritesBubble({
       window.clearInterval(interval);
     };
   }, []);
+
+
+  useEffect(() => {
+    const contactRoot = bubbleRef.current?.closest('.anonymous-contact');
+    function updateDenseContentState() {
+      setIsHiddenByDenseContent(!isOpen && hasDenseContentUnderBubble(contactRoot));
+    }
+    updateDenseContentState();
+    const observer = new MutationObserver(updateDenseContentState);
+    observer.observe(document.body, { attributes: true, childList: true, subtree: true });
+    window.addEventListener('scroll', updateDenseContentState, { passive: true });
+    window.addEventListener('resize', updateDenseContentState);
+    const interval = window.setInterval(updateDenseContentState, 1200);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('scroll', updateDenseContentState);
+      window.removeEventListener('resize', updateDenseContentState);
+      window.clearInterval(interval);
+    };
+  }, [isOpen]);
 
   useEffect(() => {
     if (idleHideTimerRef.current !== null) {
@@ -480,7 +537,7 @@ export function PalengkeMaritesBubble({
     setIsDismissed(true);
   }
 
-  if (isDismissed || isBlockedByOverlay) return null;
+  if (isDismissed || isBlockedByOverlay || isHiddenByDenseContent) return null;
 
   const contactClasses = classNames(
     "anonymous-contact",

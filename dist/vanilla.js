@@ -1,6 +1,41 @@
 export const DEFAULT_MARITES_IMAGE_URL = "https://images.palengke.es/jobs/support-agent.png";
 export const MARITES_IDLE_HIDE_DELAY_MS = 30000;
 
+
+const denseContentSelector = [
+  'article',
+  '[class*="listing-card"]',
+  '[class*="product-card"]',
+  '[class*="room-card"]',
+  '[class*="home-card"]',
+  '[class*="job-card"]',
+  '[class*="guide-card"]',
+  '[class*="wanted-card"]',
+  '[class*="review-card"]',
+  '[class*="tool-ad-card"]',
+  '[data-marites-avoid-floating]',
+].join(',');
+
+function hasDenseContentUnderBubble(contactRoot) {
+  if ((window.innerWidth || 0) > 760) return false;
+  const viewportWidth = Math.max(window.innerWidth || 0, 320);
+  const viewportHeight = Math.max(window.innerHeight || 0, 480);
+  const points = [
+    [64, viewportHeight - 160],
+    [Math.min(160, viewportWidth * 0.42), viewportHeight - 160],
+    [viewportWidth - 64, viewportHeight - 160],
+    [64, viewportHeight - 230],
+  ];
+  return points.some(([x, y]) =>
+    document.elementsFromPoint(x, y).some((element) => {
+      if (!(element instanceof Element)) return false;
+      if (contactRoot?.contains(element)) return false;
+      const match = element.closest(denseContentSelector);
+      return Boolean(match && !contactRoot?.contains(match));
+    }),
+  );
+}
+
 const topics = [
   ["concern", "Concern"],
   ["question", "Question"],
@@ -211,8 +246,10 @@ export function mountPalengkeMarites({
 
   function updateOverlayState() {
     const blocked = hasBlockingOverlay(bubble);
+    const contentHidden = panel.hidden && hasDenseContentUnderBubble(bubble);
     bubble.classList.toggle('anonymous-contact--blocked', blocked);
-    bubble.setAttribute('aria-hidden', blocked ? 'true' : 'false');
+    bubble.classList.toggle('anonymous-contact--content-hidden', contentHidden);
+    bubble.setAttribute('aria-hidden', blocked || contentHidden ? 'true' : 'false');
   }
 
   applyPosition(side, y);
@@ -225,6 +262,7 @@ export function mountPalengkeMarites({
     applyPosition(side, y);
     updateOverlayState();
   });
+  window.addEventListener("scroll", updateOverlayState, { passive: true });
   bubble.addEventListener("focusin", resetIdleTimer);
   bubble.addEventListener("pointerdown", resetIdleTimer);
   bubble.addEventListener("pointerenter", resetIdleTimer);
